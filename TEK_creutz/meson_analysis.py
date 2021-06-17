@@ -28,7 +28,7 @@ Nconfs  = Wilson.shape[0]
 
 nbin = int(Nconfs/binsize)
 
-for R in [int(sys.argv[1])]:
+for R in [1]:
     creutz,creutz_err = [],[]
     for sm in range(Nsmears):
         wMM = Rebin_vector(Wilson[:,sm,R,R]    , Nbin=nbin )
@@ -41,25 +41,27 @@ for R in [int(sys.argv[1])]:
         chi = -np.log(ratio)
 
         creutz.append( chi.mean() )
-        # creutz_err.append( chi.std()/math.sqrt(len(chi)) )
-        creutz_err.append( Jackknife(chi) )
+        creutz_err.append( chi.std()/math.sqrt(len(chi)) )
+        
+        # yy = gv.gvar(creutz,creutz_err)/creutz[0]
+        # creutz_err.append( Jackknife(chi) )
 
-    t = np.arange(Nsmears)*cf/6.
+    tau = np.sqrt(8.*np.arange(Nsmears)*cf/6.)/R
+    # plt.errorbar(tau,[y.mean for y in yy],yerr=[y.sdev for y in yy],fmt='.',label=r'$\chi$('+str(R+1)+'.5)')
+    plt.errorbar(tau,creutz,yerr=creutz_err,fmt='.',label=r'$\chi$('+str(R+1)+'.5)')
 
-    # TRY TO FIT
-    maxfit = 50
-    fit = curve_fit(function,range(Nsmears)[1:maxfit],creutz[1:maxfit],sigma=creutz_err[1:maxfit])
     
-    y = function(range(Nsmears)[1:],fit[0][0],fit[0][1])
 
 
 
 
-    plt.plot(range(Nsmears)[1:],y)
-    plt.errorbar(range(Nsmears),creutz,yerr=creutz_err,fmt='.',label=r'$\chi$('+str(R)+'.5)')
+
+
+
+
 
 plt.grid(zorder=0, linewidth=0.5, color='gainsboro')
-plt.xlabel(r'$\frac{f}{6}n_{sm}$'+' with f=0.05')
+plt.xlabel(r'$\sqrt{8\frac{f}{6}n_{sm}}$'+' with f=0.05')
 plt.legend()
 plt.show()
 
