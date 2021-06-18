@@ -62,28 +62,3 @@ for sm in range(Nsmears):
     for ii in range(len(RR)):
         print("%10.9f  %10.9f"%(CHI[sm,:,0][ii],CHI[sm,:,1][ii]),end='        ',file=f)
     print('',file=f)
-
-
-
-
-#     # FIT
-#     minfit = 0
-#     maxfit = 20
-    
-#     fit = curve_fit(function,np.arange(Nsmears)[minfit:maxfit],creutz[minfit:maxfit],sigma=creutz_err[minfit:maxfit])
-#     coeff = gv.gvar(fit[0],np.diag(fit[1]))
-
-#     yy = function(np.arange(Nsmears)[minfit:maxfit],*fit[0])
-#     plt.plot(np.arange(Nsmears)[minfit:maxfit],yy)
-
-
-
-
-
-
-# plt.grid(zorder=0, linewidth=0.5, color='gainsboro')
-# plt.xlabel(r'$\sqrt{8\frac{f}{6}n_{sm}}$'+' with f=0.05')
-# plt.legend()
-# plt.show()
-
-

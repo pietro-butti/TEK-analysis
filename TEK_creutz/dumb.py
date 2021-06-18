@@ -15,6 +15,5 @@ def function(nsm,a,b,c):
 
 ciao = np.loadtxt('DATA/PROCESSED/n361b0340k7hf1850_creutz.dat').T
 
-plt.errorbar(ciao[0],ciao[4],yerr=ciao[5],fmt='.')
 
 plt.show()
