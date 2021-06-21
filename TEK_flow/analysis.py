@@ -2,72 +2,111 @@ import numpy as np
 import gvar as gv
 import math
 import os
-
-from tools import Rebin_columns
-from tools import Jackknife
-from tools import Jack_deviation
-from tools import Filter_and_interpolate
-from tools import chi2
-from tools import ddt_4th
-from tools import PLOT
+import sys
 
 import matplotlib.pyplot as plt 
 from scipy.optimize import curve_fit 
 from operator import itemgetter
 
+from tools import Rebin_columns, Jackknife, Filter_and_interpolate, ddt_4th
+
 
 class TEK_flow:
-    # RETURNED:
-    # self.time
-    # self.t2E (self.t2E is <t^2E>)
-    # self.data (matrix of <t^2E> for every configuration)
-    def __init__(self,basement=None,datacopy=None,deltat=0.03125,usecols=None):
+    def __init__(self,basement=None,deltat=.03125,usecols=None):
+        # Class flags and attributes
+        self.find_t0_has_been_called = False
+        self.jkk_sigma_has_been_called = False
+        self.norm_correction_has_been_called = False
+        self.harvest_has_been_called = False
+
         self.deltat = deltat
         self.t0 = {}
         self.t0_sigmaj = {}
 
-        if usecols==None: col = 3
-        else: col = usecols
-
-        if not basement==None:
-            self.basement = basement
-            self.filename = basement+'.dat'
-            # Gather data in a matrix
-            data = []
-            for file in os.listdir(basement):
-                file = os.path.join(basement,file)
-                data.append( np.loadtxt(file,comments='#',usecols=col).tolist() )
-        elif isinstance(datacopy,np.ndarray):
-            data = datacopy
-            self.basement = 'unknown'
+        self.data = []
 
         # ----------------------------------------------------------------------
-        # Count how many timesteps are there and reshape in case
-        Nsteps = [len(el) for el in data]
-        self.time = np.arange(0,Nsteps[0]*deltat,deltat)
 
-        if not all(i==Nsteps[0] for i in Nsteps):
-            tmax = min(Nsteps)
-            self.time = self.time[:tmax]
-            for ii in range(len(data)):
-                data[ii] = data[ii][:tmax]
-        self.data = np.array(data)
+        if basement==None: self.basement = 'unknown'
+        else:              self.basement = basement
+        
+        self.deltat = deltat
 
-        self.Tmin = 0
-        self.Tmax = len(self.time)
+        if usecols==None: self.usecols = 3
+        else            : self.usecols = usecols
 
-        # # Calculate mean
+    # RETURNED:
+    # self.time
+    # self.data[conf,tt_index] (matrix of <t^2E> for every configuration)
+    # self.t2E                 (self.t2E is <t^2E>)
+    def harvest(self,data,outfolder=None,save_to=None):
+        self.harvest_has_been_called = True
+
+        # HARVEST DATA ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        # Detect if input data is a numpy array or a path
+        if isinstance(data,str):
+            if os.path.isdir(data): # --------------------------------------------------------------------
+                tmaxes = []
+                for file in sorted(os.listdir(data)):
+                    filename = os.path.join(data,file)
+
+                    time = np.loadtxt(filename,comments='#',usecols=0).tolist()
+                    t2e =  np.loadtxt(filename,comments='#',usecols=self.usecols).tolist()
+
+                    if time[0]==self.deltat: t2e.insert(0,0.)
+                    # print(time[0],t2e[0])
+
+                    self.data.append(t2e)
+                    tmaxes.append(len(t2e))
+                    
+                # Count how many timesteps and reshape
+                tmax = min(tmaxes)
+                for ii in range(len(self.data)):
+                    self.data[ii] = self.data[ii][:tmax]
+                
+                self.data = np.array(self.data)
+                print(self.data.shape)
+
+
+                print('Data have been collected in self.data[conf,t2E] from',data)
+                if not save_to==None:
+                    print('I am going to save them in',save_to+'.npy')
+                    flag = input('IS THAT OK? (y or n)')
+                    if flag.strip()=='y':
+                        np.save(save_to,self.data)
+                    else: exit()
+
+
+            elif os.path.isfile(data) and data.endswith('.npy'):  # -----------------------------------------
+                self.data = np.load(data)
+                print('Data have been collected in self.data[conf,t2E] from',data)
+                print('self.data.shape = ',self.data.shape)               
+
+            else: # ------------------------------------------------------------------------------------------
+                print('LOCAL error: ',data,'is neither a directory nor a .npy file. Exiting...')
+                exit()
+
+        elif isinstance(data,np.ndarray):
+            self.data = data
+        else:
+            print('LOCAL error:',data,'has a non-recognizable format. Exiting...')
+            exit()
+        
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
         self.t2E = []
         for rows in self.data.T:
             self.t2E.append( rows.mean() )
         self.t2E = np.array(self.t2E)
 
+        self.time = np.array([ii*self.deltat for ii in range(len(self.t2E))])
 
-        # ----------------------------------------------------------------------
-        # Function attributes
-        self.find_t0_has_been_called = False
-        self.jkk_sigma_has_been_called = False
-        self.norm_correction_has_been_called = False
+        self.Tmin = 0
+        self.Tmax = len(self.time)
+
 
     # RETURNED:
     # self.NofT                                             (= N(t))
@@ -102,7 +141,6 @@ class TEK_flow:
     # RETURNED:
     # self.t2E_sigmaj
     def jkk_sigma(self):
-        print('Harvesting') 
         jkk = []
         for binsize in range(10,21):
             newdata = Rebin_columns(self.data,binsize=binsize)
@@ -120,8 +158,8 @@ class TEK_flow:
         print('Jkk completed')
         self.jkk_sigma_has_been_called = True
         return self.t2E_sigmaj
-    
-    # RETURNED:
+
+        # RETURNED:
     # self.data_w
     # self.wt2E
     # self.wt2E_sigmaj
@@ -164,8 +202,7 @@ class TEK_flow:
         for el in jkk: bin.append(el.mean())
         
         self.wt2E_sigmaj = bin
-        '''
-        '''
+
 
     def export(self,filename=None,w=False):
         if filename==None:
@@ -181,7 +218,9 @@ class TEK_flow:
             print("# t    %20s    %20s     %20s    %20s"%("t2 <E>","sigma jack","t d/dt(t2 <E>)","sigma jack"),file=f)
             for flowt in range(self.Tmin,self.Tmax):
                 print(" %7.8f    %20.19f    %20.19f   %20.19f    %20.19f   "%(self.time[flowt],self.t2E[flowt],self.t2E_sigmaj[flowt],self.wt2E[flowt],self.wt2E_sigmaj[flowt]),file=f)
-        f.close()
+        f.close()           
+
+
     
     # This takes self.data (which has (Nconf,Ntimes)) and reshape it in (newconfN,Ntimes)
     # EXPLICIT
@@ -299,56 +338,10 @@ class TEK_flow:
 
 
 
+flow = TEK_flow('n289b0350k5hf1775')
+# flow.harvest('/home/pietro/Desktop/DATA_LOCAL/TEK_flow/nfh/n289b0350k5hf1775/',save_to='DATA/'+flow.basement)
+flow.harvest('DATA/'+flow.basement+'.npy')
+flow.norm_correction(289)
+flow.jkk_sigma()
+flow.export(filename='OUTPUT/'+flow.basement+'.dat')
 
-
-
-
-
-
-# ==============================================================================================
-# ==============================================================================================
-files = [
-    #'nfh/n289b0350k5hf100',
-    #'nfh/n289b0350k5hf110',
-    #'nfh/n289b0350k5hf120',
-    #'nfh/n289b0350k5hf130',
-    #'nfh/n289b0350k5hf140',
-    #'nfh/n289b0350k5hf150',
-    #'nfh/n289b0350k5hf155',
-    #'nfh/n289b0350k5hf160',
-    #'nfh/n289b0350k5hf165',
-    #'nfh/n289b0350k5hf170',
-    #'nfh/n289b0350k5hf175',
-    'nfh/n289b0350k5hf1775',
-    'nfh/n289b0350k5hf1800',
-    'nfh/n289b0350k5hf1825',
-    'nfh/n289b0350k5hf1850',
-    'nfh/n289b0350k5hf1875',
-    #'nfh/n169b0350k5hf1775',
-    #'nfh/n169b0350k5hf1800',
-    #'nfh/n169b0350k5hf1825',
-    #'nfh/n169b0350k5hf1850',
-    #'nfh/n361b0350k7hf1825'
-    #'nfh/n169b0347k5hf1850',
-    #'nfh/n169b0347k5hf1875',
-    #'nfh/n169b0347k5hf1890'
-]
-
-for file in files:
-    print(30*'-',file,30*'-')
-    kappa = float(file[17:])/10000
-    N = int(file[5:8])
-
-    flow = TEK_flow(file)
-    flow.norm_correction(N,correct_data=True)
-    flow.jkk_sigma()
-    
-    x = flow.time()
-    plt.fill_between()
-
-
-
-
-
-# ==============================================================================================
-# ==============================================================================================
