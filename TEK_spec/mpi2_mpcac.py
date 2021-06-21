@@ -18,35 +18,14 @@ from tools import color
 
 
 ########## GEARBOX ##########
-basement = 'n289b0350k5hf'
 
 
 # KA = ['1775','1800','1825']
-KA = ['1825']
+KA = ['1910']
 Op = [8]
 
-path = {
-    '1775':'OUTPUT/1775_17bin/',
-    '1800':'OUTPUT/1800_17bin/',
-    '1825':'OUTPUT/1825_17bin/'
-}
-pathj = {
-    '1775':'OUTPUT/JACK/1775_17bin/',
-    '1800':'OUTPUT/JACK/1800_17bin/',
-    '1825':'OUTPUT/JACK/1825_17bin/'
-}
-kappaf = {
-    '1775':['1500','1525','1550','1562'],
-    '1800':['1470','1500','1525','1550','1562'],
-    '1825':['1470','1500','1525','1550','1558']
-}
-Njack = 17
+from common import basement,path,pathj,kappaf,Njack,colorii
 
-colorii = {
-    '1775':0,
-    '1800':4,
-    '1825':10
-}
 
 minpoint = 0
 maxpoint = -1
@@ -71,8 +50,8 @@ for ka in KA:
 
     for op in Op:
         # Extract data
-        mpcac = np.loadtxt(path[ka]+basement+ka+'_mpcac_'+str(op)+'op.dat')
-        pp    = np.loadtxt(path[ka]+basement+ka+'_pp_'+str(op)+'op.dat')
+        mpcac = np.loadtxt(path[ka]+basement[ka]+ka+'_mpcac_'+str(op)+'op.dat')
+        pp    = np.loadtxt(path[ka]+basement[ka]+ka+'_pp_'+str(op)+'op.dat')
         mpi2 = gv.gvar(pp[:,3],pp[:,4])**2
 
         mpcacj,ppj=[],[]
@@ -96,7 +75,7 @@ for ka in KA:
 
 
         mj,qj = [],[]
-        for jj in range(Njack):
+        for jj in range(Njack[ka]):
             mpi2j = gv.gvar(
                 ppj[minpoint:maxpoint,1,jj],
                 ppj[minpoint:maxpoint,2,jj]
@@ -118,10 +97,10 @@ for ka in KA:
 
 
         plt.errorbar(mpcac[minpoint:maxpoint,1],y,yerr=erry,fmt='.',color=color[colorii[ka]])
-        x = np.arange(0,mpcac[0,1]+0.02,0.01)
+        x = np.arange(0,mpcac[0,1]+0.02,0.001)
         
         plt.plot(x,line(x,*fit[0]),label=r'$\kappa_a=$0.'+str(ka)+r', $\chi$='+str( '{:.2f}'.format(chi) ),color=color[colorii[ka]+2],alpha=0.7)
-        plt.plot(x,parabola(x,*fit2[0]),label=r'$\kappa_a=$0.'+str(ka)+r', $\chi$='+str( '{:.2f}'.format(chi_par) ),color=color[colorii[ka]+1],alpha=0.7)
+        plt.plot(x,parabola(x,*fit2[0]),label=r'$\kappa_a=$0.'+str(ka)+r', $\chi$='+str( '{:.2f}'.format(chi_par) ),color=color[colorii[ka]+1],alpha=0.2)
 
 
 

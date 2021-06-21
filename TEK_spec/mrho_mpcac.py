@@ -13,46 +13,15 @@ from tools import line
 from tools import parabola
 from tools import color
 
-D = {}
 
 
 # ========================================================
-# KA = ['1775','1800','1825','1910']
-KA = [sys.argv[1]]
+KA = ['1775','1800','1825','1910']
+# KA = [sys.argv[1]]
 Op = [8]
 
-basements = {
-    '1775':'n289b0350k5hf',
-    '1800':'n289b0350k5hf',
-    '1825':'n289b0350k5hf',
-    '1910':'n289b0340k5hf'
-}
+from common import basement,path,pathj,kappaf,Njack,colorii
 
-path = {
-    '1775':'OUTPUT/1775_17bin/',
-    '1800':'OUTPUT/1800_17bin/',
-    '1825':'OUTPUT/1825_17bin/',
-    '1910':'OUTPUT/1910_half/'
-}
-pathj = {
-    '1775':'OUTPUT/JACK/1775_17bin/',
-    '1800':'OUTPUT/JACK/1800_17bin/',
-    '1825':'OUTPUT/JACK/1825_17bin/',
-    '1910':'OUTPUT/JACK/1910_half/'
-}
-
-KF = {
-    '1775': ['1500','1525','1550','1562'],
-    '1800': ['1470','1500','1525','1550','1562'],
-    '1825': ['1470','1500','1525','1550','1558'],
-    '1910': ['1570']
-}
-Njack =  {
-    '1775':17,
-    '1800':17,
-    '1825':17,
-    '1910':20
-}
 
 minpoint = 0
 maxpoint = 3
@@ -62,19 +31,16 @@ maxpoint = 3
 cc = 0
 for ka in KA:
     print(30*'=',ka,30*'=')
-    basement = basements[ka]+ka
-
-
-
+    # basement = basements[ka]+ka
 
     for op in Op:    
         # Gather data ----------------------------------------------------------------------
-        mpcac  = np.loadtxt(path[ka]+basement+'_mpcac_'+str(op)+'op.dat')[-len(KF[ka]):]
-        vi     = np.loadtxt(path[ka]+basement+'_vi_'+str(op)+'op.dat')[-len(KF[ka]):]
+        mpcac  = np.loadtxt(path[ka]+basement[ka]+ka+'_mpcac_'+str(op)+'op.dat')[-len(kappaf[ka]):]
+        vi     = np.loadtxt(path[ka]+basement[ka]+ka+'_vi_'+str(op)+'op.dat')[-len(kappaf[ka]):]
 
         mpcacj = []
         vij    = []
-        for kf in KF[ka]:
+        for kf in kappaf[ka]:
             mpcacj.append( np.loadtxt(pathj[ka]+'coeffj_'+ka+'_'+kf+'_mpcac_'+str(op)+'op.dat').T )
             vij.append(    np.loadtxt(pathj[ka]+'coeffj_'+ka+'_'+kf+'_vi_'+str(op)+'op.dat').T )
         mpcacj = np.array(mpcacj)
@@ -89,7 +55,7 @@ for ka in KA:
 
 
         Qj = [] 
-        for jj in range(Njack):
+        for jj in range(Njack[ka]):
             fitj = curve_fit(line,mpcacj[minpoint:maxpoint,0,jj],vij[minpoint:maxpoint,1,jj],sigma=vij[minpoint:maxpoint,2,jj])[0]
             Qj.append( fitj[1] )
         Q_sigmaj = jstd_dev(Qj)

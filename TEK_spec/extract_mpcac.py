@@ -11,27 +11,9 @@ from tools import jstd_dev
 
 
 #######################################################################
-tag = sys.argv[1]
-
-
-kadj = tag
-basement = 'n289b0350k5hf'+kadj
-path = 'DATA/1875okawa/'
-outtag = tag+'_half'
-Njack = 34
-pa_mod = -1
-#++++++++++ IMPORTANT ++++++++++++
-kappa = {
-    '1775':['1500','1525','1550','1562'],
-    '1800':['1470','1500','1525','1550','1562'],
-    '1825':['1470','1500','1525','1550','1558'],
-    '1875':['1525'],
-    '1910':['1570']
-}
-# Nop = [5,6,7,8,9]
-Nop = [8]
+from common import tag,kadj,basement,path,outtag,Njack,kappa,Nop
 #+++++++++++++++++++++++++++++++++
-
+pa_mod = -1
 
 tmin = 4
 tmax = 8
@@ -45,8 +27,6 @@ minfit = tmin-offset
 maxfit = tmax-offset+1
 # --------------------------------------------
 # FLAGS
-
-
 debug_mode= False
 
 plot     = True
