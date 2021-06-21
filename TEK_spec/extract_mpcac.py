@@ -15,16 +15,17 @@ tag = sys.argv[1]
 
 
 kadj = tag
-basement = 'n289b0340k5hf'+kadj
-path = 'DATA/b34half'
+basement = 'n289b0350k5hf'+kadj
+path = 'DATA/1875okawa/'
 outtag = tag+'_half'
-Njack = 20
+Njack = 34
 pa_mod = -1
 #++++++++++ IMPORTANT ++++++++++++
 kappa = {
     '1775':['1500','1525','1550','1562'],
     '1800':['1470','1500','1525','1550','1562'],
     '1825':['1470','1500','1525','1550','1558'],
+    '1875':['1525'],
     '1910':['1570']
 }
 # Nop = [5,6,7,8,9]
@@ -69,11 +70,14 @@ for kf in kappa[tag]:
         print(30*'=',key,30*'=')
 
         # GATHER OUTPUT ----------------------------------------------------
-        filempcac  = path+'/Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_mpcacdl'
-        filempcacj = path+'/Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_jmpcacdl'
+        filempcac  = os.path.join(path,'Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_mpcacdl')
+        filempcacj = os.path.join(path,'Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_jmpcacdl')
 
-        data   = np.loadtxt(filempcac,comments='#').T
-        ddataj = np.loadtxt(filempcacj,comments='#').T
+        # data   = np.loadtxt(filempcac,comments='#').T
+        # ddataj = np.loadtxt(filempcacj,comments='#').T
+
+        data   = np.load(filempcac+'.npy').T
+        ddataj = np.load(filempcacj+'.npy').T
 
 
         # Change the sign to the effective mass (only true for the new version MesonFundamental-r880)

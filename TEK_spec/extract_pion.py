@@ -25,15 +25,16 @@ def corr(x,A,B):
 tag = sys.argv[1]
 
 kadj = tag
-basement = 'n289b0340k5hf'+kadj
-path = 'DATA/b34half'
+basement = 'n289b0350k5hf'+kadj
+path = 'DATA/1875okawa'
 outtag = tag+'_half'
-Njack = 20
+Njack = 34
 #+++++++ IMPORTANT ++++++++++++
 kappa = {
     '1775':['1500','1525','1550','1562'],
     '1800':['1470','1500','1525','1550','1562'],
     '1825':['1470','1500','1525','1550','1558'],
+    '1875':['1525'],
     '1910':['1570']
 }
 
@@ -41,7 +42,7 @@ kappa = {
 Nop = [8]
 #++++++++++++++++++++++++++++++
 
-obs = 'pp'
+obs = 'vi'
 
 tmin = 4
 tmax = 8
@@ -79,15 +80,15 @@ for kf in kappa[tag]:
         print(30*'=',key,30*'=')
 
 
-
-
-
         # GATHER DATA ------------------------------------------------------------------
-        file  = path+'/Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_'+obs+'_cxdl'
-        filej = path+'/Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_'+obs+'_jcxdl'  
+        file  = os.path.join(path,'Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_'+obs+'_cxdl')
+        filej = os.path.join(path,'Op'+str(op)+'_t22_t11/'+basement+'_'+kf+'_'+obs+'_jcxdl')  
 
-        data  = np.loadtxt(file,comments='#').T
-        ddataj = np.loadtxt(filej,comments='#').T
+        # data  = np.loadtxt(file,comments='#').T
+        # ddataj = np.loadtxt(filej,comments='#').T        
+        
+        data   = np.load(file +'.npy').T
+        ddataj = np.load(filej+'.npy').T
 
         # These are the average data
         time = data[2,:Ntimes+1]
@@ -188,7 +189,7 @@ if plot:
     plt.yscale('log')
     plt.legend()
     #plt.legend(fontsize='small')
-    plt.savefig('PLOTS/comparison/vi_'+basement[1:4])
+    # plt.savefig('PLOTS/comparison/vi_'+basement[1:4])
     plt.show()
 
 if export:

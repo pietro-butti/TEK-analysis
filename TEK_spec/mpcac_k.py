@@ -17,14 +17,15 @@ from tools import color
 ########## GEARBOX ##########
 
 
-KA = ['1775','1800','1825','1910']
-# KA = ['1800']
+KA = ['1775','1800','1825','1875']
+# KA = ['1875']
 Op = [8]
 
 basement = {
     '1775':'n289b0350k5hf',
     '1800':'n289b0350k5hf',
     '1825':'n289b0350k5hf',
+    '1875':'n289b0350k5hf',
     '1910':'n289b0340k5hf'
 }
 
@@ -32,24 +33,28 @@ path = {
     '1775':'OUTPUT/1775_17bin/',
     '1800':'OUTPUT/1800_17bin/',
     '1825':'OUTPUT/1825_17bin/',
+    '1875':'OUTPUT/1875okawa/',
     '1910':'OUTPUT/1910_half/'
 }
 pathj = {
     '1775':'OUTPUT/JACK/1775_17bin/',
     '1800':'OUTPUT/JACK/1800_17bin/',
     '1825':'OUTPUT/JACK/1825_17bin/',
+    '1875':'OUTPUT/JACK/1875okawa/',
     '1910':'OUTPUT/JACK/1910_half/'
 }
 kappaf = {
     '1775':['1500','1525','1550','1562'],
     '1800':['1470','1500','1525','1550','1562'],
     '1825':['1470','1500','1525','1550','1558'],
+    '1875':['1525'],
     '1910':['1570']
 }
 Njack =  {
     '1775':17,
     '1800':17,
     '1825':17,
+    '1875':34,
     '1910':20
 }
 
@@ -57,6 +62,7 @@ colorii = {
     '1775':0,
     '1800':4,
     '1825':10,
+    '1875':11,
     '1910':11
 }
 #############################
@@ -92,6 +98,8 @@ for ka in KA:
             mc = - coeffs[1]/coeffs[0]
             kc = .5/mc
 
+            # print(coeffs[0])
+
 
             # Fit every bin
             kcj = []
@@ -111,8 +119,16 @@ for ka in KA:
 
             plt.errorbar(mc.mean,0,xerr=mc.sdev,fmt='.',color='red')
             plt.errorbar(.5/KF,mpcac[:,1],yerr=mpcac[:,2],fmt='.',color=color[colorii[ka]])
+
+
         else:
-            plt.errorbar(.5/KF,mpcac[1],yerr=mpcac[2],fmt='.',color=color[colorii[ka]],label=r'b=0.34, $\kappa_a=$0.'+str(ka))
+
+            # Calculate fictitious kc
+            x = np.arange(3.15,.5/(KF-.01),.01)            
+            y = line(x,0.927,mpcac[1]-0.927*.5/KF)
+
+            plt.plot(x,y,color=color[colorii[ka]],alpha=0.2)
+            plt.errorbar(.5/KF,mpcac[1],yerr=mpcac[2],fmt='.',color=color[colorii[ka]],label=r'$\kappa_a=$0.'+str(ka))
 
 
 

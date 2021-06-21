@@ -23,6 +23,10 @@ do
 
 done
 
+echo "IMPORTANT: files are saved in DATA_LOCAL, not in this folder."
+echo "Launch > python3 export.py <same input to this export.sh>"
+echo "in order to have local .npy files"
+
 
 
 # T5kPr0y_2011?
