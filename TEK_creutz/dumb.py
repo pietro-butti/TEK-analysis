@@ -25,7 +25,7 @@ for R in [int(sys.argv[1])]:
         minfit = int(sys.argv[2])
         maxfit = int(sys.argv[3])
 
-        x = ciao[0][minfit:maxfit]
+        x = ciao[0][minfit:maxfit]/R
         y = np.array(ciao[2*R][minfit:maxfit])
         erry = np.array(ciao[2*R+1][minfit:maxfit])
 
